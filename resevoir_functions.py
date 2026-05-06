@@ -12,16 +12,22 @@ def reduction_factor(current_storage, min_storage, max_storage):
 
     if min_storage > max_storage:
         raise ValueError(f'Maximum Storage {max_storage:.2f} cannot Exceed Minimum Storage {min_storage:.2f}')
-    return (current_storage-min_storage)/(max_storage-min_storage)
+   
+    rf = (current_storage-min_storage)/(max_storage-min_storage)
+    if rf < 0:
+        rf = 0
+    elif rf > 1:
+        rf = 1
+    return rf
 
-def initial_discharge(current_storage, max_storage, min_storage, avg_outflow):
+def initial_discharge(current_storage, max_storage, min_storage, avg_outflow, avg_discharge):
 
     #equation 1
 
     RF = reduction_factor(current_storage, min_storage, max_storage)
     Ri = avg_outflow*RF
     if Ri > BANKFULL_NUMBER:
-        warnings.warn(f"Ri ({Ri:.2f}) exceeds bankfull discharge threshold of {BANKFULL_NUMBER}")
+        warnings.warn(f"Ri ({Ri:.2f}) exceeds bankfull discharge threshold of {BANKFULL_NUMBER*avg_discharge}") #Do we compare to discharge or number? We would then have to define average discharge as well. 
     return Ri
 
 def new_storage(current_storage, max_storage, min_storage, avg_outflow, inflow=0, precipitation=0, evaporation=0,):
@@ -30,8 +36,8 @@ def new_storage(current_storage, max_storage, min_storage, avg_outflow, inflow=0
     #This updated storage is used to define the reduction factor. I am still thinking of a way how to implement the timesteps 
     #I might need to change initial discharge to a release function based on the timestep. 
 
-    ID = initial_discharge(current_storage, max_storage, min_storage, avg_outflow)
-    Sn = current_storage + inflow + precipitation - evaporation - ID
+    release = initial_discharge(current_storage, max_storage, min_storage, avg_outflow) #The release should be calculated and not just be the initial release. Some Logic is still required for this.
+    Sn = current_storage + inflow + precipitation - evaporation - release
 
     return Sn
 
@@ -39,7 +45,7 @@ def flood_release(current_storage, release, max_storage):
 
     #determines the extra flood release when required
 
-    return current_storage-release-max_storage
+    return max(current_storage-release-max_storage, 0)
 
 def generic_release(current_storage, avg_discharge, storage_capacity, bankfull_discharge, bankfull_number=BANKFULL_NUMBER):
     
@@ -124,7 +130,7 @@ def irrigation_release(min_storage, max_storage, current_storage, current_releas
         release = current_release
     elif min_storage < current_storage < max_storage and current_release < demand:
         release = RF*demand
-    elif current_storage - current_release < 0.1*storage_capacity:
+    if current_storage - current_release < 0.1*storage_capacity:
         release = max(current_storage-0.1*storage_capacity, 0)
     return release     
 
