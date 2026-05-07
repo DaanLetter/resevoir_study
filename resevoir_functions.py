@@ -43,7 +43,9 @@ def new_storage(current_storage, max_storage, min_storage, avg_outflow, inflow=0
 
 def flood_release(current_storage, release, max_storage):
 
-    #determines the extra flood release when required
+    # Determines the extra release needed to draw storage back to the
+    # upper operating bound. In the generic scheme this is 75% of capacity;
+    # in STARFIT this is the fitted flood/upper bound for the timestep.
 
     return max(current_storage-release-max_storage, 0)
 
@@ -78,7 +80,7 @@ def starfit_release(current_storage, storage_capacity, current_release, max_stor
     Rh = hydropower_release(current_storage, min_storage, max_storage, current_release, demand)
     Rf = flood_release(current_storage, current_release, max_storage)
 
-    if current_storage - current_release >= storage_capacity:
+    if current_storage - current_release >= max_storage:
         release = ID  + Rf
     elif min_storage < current_storage < max_storage and use == 'irrigation':
         release = Ri
