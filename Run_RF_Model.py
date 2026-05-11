@@ -55,8 +55,8 @@ def create_sinusodial_curve_constrained(  alpha, beta,  mu, max, min,bound_varia
         counter = counter +1
     return (final_df)
 
-rf_df = pd.read_csv('Data/RF/random_forest_inputs_all.csv')
-turner_params = pd.read_csv('Data/RF/params_glolakes_no_inf.csv')
+# rf_df = pd.read_csv('Data/RF/random_forest_inputs_all.csv')
+# turner_params = pd.read_csv('Data/RF/params_glolakes_no_inf.csv')
 
 
 # FOR ICESAT
@@ -91,10 +91,10 @@ rf_df = rf_df.dropna(subset=['cap', 'area']) # removed na in cap and area
 rf_df['dom_autumn'] = rf_df['dom_autumn'].fillna(0)# made domestic demand 0 if its missing
 rf_df['dom_winter'] = rf_df['dom_winter'].fillna(0) # made domestic demand 0 if its missing
 rf_df['dom_sumnmer'] = rf_df['dom_sumnmer'].fillna(0) # made domestic demand 0 if its missing
-rf_df['dom_winter'] = rf_df['dom_winter'].fillna(0)# made domestic demand 0 if its missing
+rf_df['dom_spring'] = rf_df['dom_spring'].fillna(0)# made domestic demand 0 if its missing
 rf_df['autumn_inflow']= rf_df['autumn_inflow'].fillna(0) # made domestic demand 0 if its missing
 
-'Daans comment: making demand 0 when its missing might not be the way to work with missing data. Especially since the missing data mechanism is probably MAR'
+#Daans comment: making demand 0 when its missing might not be the way to work with missing data. Especially since the missing data mechanism is probably MAR
 
 rf_df['use_Navigation'] = 0
 
@@ -153,10 +153,10 @@ feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse 
 # Calculate mean absolute percentage error (MAPE)
 # add in stdev and and rmse
 rmse_all = np.sqrt(np.mean((predictions-test_labels)**2))
-rmse1 = np.sqrt(np.mean((predictions[0]-test_labels[0])**2))
-rmse2 = np.sqrt(np.mean((predictions[1]-test_labels[1])**2))
-rmse3 = np.sqrt(np.mean((predictions[2]-test_labels[2])**2))
-nrmse_all = np.sqrt(rmse1/np.mean(test_labels[0])**2 + rmse2/np.mean(test_labels[1])**2 + rmse3/np.mean(test_labels[2])**2)
+rmse1 = np.sqrt(np.mean((predictions[:,0]-test_labels[:,0])**2))
+rmse2 = np.sqrt(np.mean((predictions[:,1]-test_labels[:,1])**2))
+rmse3 = np.sqrt(np.mean((predictions[:,2]-test_labels[:,2])**2))
+nrmse_all = np.sqrt(rmse1/np.mean(test_labels[:,0])**2 + rmse2/np.mean(test_labels[:,1])**2 + rmse3/np.mean(test_labels[:,2])**2)
 
 stdev = np.std(predictions)
 
@@ -206,7 +206,7 @@ plt.show()
 
 
 raw_data_file = 'Data/RF/Turner_resultsResOps/'
-test_values = '9331.csv' # 1526.csv
+#test_values = '9331.csv' # 1526.csv
 
 
 input_values ='Data/RF/random_forest_inputs_correct.csv'
@@ -262,179 +262,179 @@ plt.show()
 ## Test 1:
 
 
-### Model test
-raw_data_file = 'Data/RF/Turner_resultsResOps/'
-test_values = '9331.csv' # 1526.csv
+# ### Model test
+# raw_data_file = 'Data/RF/Turner_resultsResOps/'
+# test_values = '9331.csv' # 1526.csv
 
 
-input_values ='Data/RF/random_forest_inputs_correct.csv'
-input_data = pd.read_csv(input_values)
-input_data = input_data.drop(columns =['watershed_area', 'discharge_anom_top', 'discharge_anom_bottom',
-                             'use_Other', 'use_Recreation', 'use_Water Supply'])
-input_data['use_Navigation'] = 0
-#### WATER SUPPLY
-#### FLOOD CONTROL
-# dam index 200
-file_0 = raw_data_file + '101498.csv'
+# input_values ='Data/RF/random_forest_inputs_correct.csv'
+# input_data = pd.read_csv(input_values)
+# input_data = input_data.drop(columns =['watershed_area', 'discharge_anom_top', 'discharge_anom_bottom',
+#                              'use_Other', 'use_Recreation', 'use_Water Supply'])
+# input_data['use_Navigation'] = 0
+# #### WATER SUPPLY
+# #### FLOOD CONTROL
+# # dam index 200
+# file_0 = raw_data_file + '101498.csv'
 
-turner_data = pd.read_csv(file_0)
-index_dam = input_data[input_data['hydrolakes'] == 101498]
-
-
-index_dam = index_dam.rename(columns={'dome_spring': 'dom_spring'})
-all_variables = rf.predict(index_dam[features.columns])
-alpha = all_variables[0,0]
-beta = all_variables[0,1]
-mu = all_variables[0,2]
-flood_max = all_variables[0,3]
-flood_min = all_variables [0,4]
-
-a_low = all_variables[0,5]
-b_low = all_variables[0,6]
-mu_low = all_variables[0,7]
-conserve_max = all_variables[0,8]
-conserve_min = all_variables[0,9]
-
-curve_flood= create_sinusodial_curve_constrained(alpha, beta, mu, flood_max, flood_min,"flood")
-curve_conserve = create_sinusodial_curve_constrained(a_low, b_low, mu_low, conserve_max, conserve_min,"conserve")
-
-rmse_101498_high = np.sqrt(np.mean((curve_flood['flood']- turner_data['flood'])**2))
-rmse_101498_low = np.sqrt(np.mean((curve_conserve['conserve']- turner_data['conservation'])**2))
-print('RMSE flood is ' + str(rmse_101498_high) + ' and RMSE conservation is ' + str(rmse_101498_low))
+# turner_data = pd.read_csv(file_0)
+# index_dam = input_data[input_data['hydrolakes'] == 101498]
 
 
-# plot against one another: Dam index 5
-plt.plot(turner_data['epiweek'], turner_data['flood'], color = 'navy', label='turner observed flood curve  ')
-plt.plot(curve_flood['epiweek'], curve_flood['flood'], color = 'lightblue', label = 'RF flood curve')
-plt.plot(curve_conserve['epiweek'], curve_conserve['conserve'], color = 'pink', label = 'RF conservation curve')
-plt.plot(turner_data['epiweek'], turner_data['conservation'], color ='red', label = 'turner observed conservation curve')
-plt.legend()
-plt.title("RF and Turner for Dam 101498")
-plt.show()
+# index_dam = index_dam.rename(columns={'dome_spring': 'dom_spring'})
+# all_variables = rf.predict(index_dam[features.columns])
+# alpha = all_variables[0,0]
+# beta = all_variables[0,1]
+# mu = all_variables[0,2]
+# flood_max = all_variables[0,3]
+# flood_min = all_variables [0,4]
 
-#### FLOOD CONTROL
-# dam index 200
-file_29 = raw_data_file + '113172.csv'
-turner_data = pd.read_csv(file_29)
-index_dam = input[input['hydrolakes'] == 113172]
+# a_low = all_variables[0,5]
+# b_low = all_variables[0,6]
+# mu_low = all_variables[0,7]
+# conserve_max = all_variables[0,8]
+# conserve_min = all_variables[0,9]
 
+# curve_flood= create_sinusodial_curve_constrained(alpha, beta, mu, flood_max, flood_min,"flood")
+# curve_conserve = create_sinusodial_curve_constrained(a_low, b_low, mu_low, conserve_max, conserve_min,"conserve")
 
-
-index_dam = index_dam.rename(columns={'dome_spring': 'dom_spring'})
-all_variables = rf.predict(index_dam[features.columns])
-alpha = all_variables[0,0]
-beta = all_variables[0,1]
-mu = all_variables[0,2]
-
-a_low = all_variables[0,3]
-b_low = all_variables[0,4]
-mu_low = all_variables[0,5]
+# rmse_101498_high = np.sqrt(np.mean((curve_flood['flood']- turner_data['flood'])**2))
+# rmse_101498_low = np.sqrt(np.mean((curve_conserve['conserve']- turner_data['conservation'])**2))
+# print('RMSE flood is ' + str(rmse_101498_high) + ' and RMSE conservation is ' + str(rmse_101498_low))
 
 
-curve_flood= create_sinusodial_curve(alpha, beta, mu,"flood")
-curve_conserve = create_sinusodial_curve(a_low, b_low, mu_low, "conserve")
-rmse_101498_high = np.sqrt(np.mean((curve_flood['flood']- turner_data['flood'])**2))
-rmse_101498_low = np.sqrt(np.mean((curve_conserve['conserve']- turner_data['conservation'])**2))
-print('RMSE flood is ' + str(rmse_101498_high) + ' and RMSE conservation is ' + str(rmse_101498_low))
+# # plot against one another: Dam index 5
+# plt.plot(turner_data['epiweek'], turner_data['flood'], color = 'navy', label='turner observed flood curve  ')
+# plt.plot(curve_flood['epiweek'], curve_flood['flood'], color = 'lightblue', label = 'RF flood curve')
+# plt.plot(curve_conserve['epiweek'], curve_conserve['conserve'], color = 'pink', label = 'RF conservation curve')
+# plt.plot(turner_data['epiweek'], turner_data['conservation'], color ='red', label = 'turner observed conservation curve')
+# plt.legend()
+# plt.title("RF and Turner for Dam 101498")
+# plt.show()
 
-# plot against one another: Dam index 5
-plt.plot(turner_data['epiweek'], turner_data['flood'], color = 'navy', label = 'turner observed flood curve  ')
-plt.plot(curve_flood['epiweek'], curve_flood['flood'], color = 'lightblue', label = 'RF flood curve')
-plt.plot(curve_conserve['epiweek'], curve_conserve['conserve'], color = 'pink', label = 'RF conservation curve')
-plt.plot(turner_data['epiweek'], turner_data['conservation'], color ='red', label = 'turner observed conservation curve')
-plt.legend()
-plt.title("RF and Turner for Dam 113172")
-plt.show()
-
-## FC 
-index_dam = input[input['hydrolakes'] == 111866.0]
-turner_data = pd.read_csv(raw_data_file +'111866.csv')
-index_dam = index_dam.rename(columns={'dome_spring': 'dom_spring'})
-all_variables = rf.predict(index_dam[features.columns])
-alpha = all_variables[0,0]
-beta = all_variables[0,1]
-mu = all_variables[0,2]
-
-a_low = all_variables[0,3]
-b_low = all_variables[0,4]
-mu_low = all_variables[0,5]
-curve_flood= create_sinusodial_curve(alpha, beta, mu,"flood")
-curve_conserve = create_sinusodial_curve(a_low, b_low, mu_low, "conserve")
-
-rmse_101498_high = np.sqrt(np.mean((curve_flood['flood']- turner_data['flood'])**2))
-rmse_101498_low = np.sqrt(np.mean((curve_conserve['conserve']- turner_data['conservation'])**2))
-print('RMSE flood is ' + str(rmse_101498_high) + ' and RMSE conservation is ' + str(rmse_101498_low))
-# plot against one another: Dam index 5
-plt.plot(turner_data['epiweek'], turner_data['flood'], color = 'navy', label = 'turner observed flood curve  ')
-plt.plot(curve_flood['epiweek'], curve_flood['flood'], color = 'lightblue', label = 'RF flood curve')
-plt.plot(curve_conserve['epiweek'], curve_conserve['conserve'], color = 'pink', label = 'RF conservation curve')
-plt.plot(turner_data['epiweek'], turner_data['conservation'], color ='red', label = 'turner observed conservation curve')
-plt.legend()
-plt.title("RF and Turner for Dam 111866")
-plt.show()
-
-# dam index 200
-file_200 = raw_data_file + '15701.csv'
-index_dam = input[input['hydrolakes'] == 15701]
-
-turner_data = pd.read_csv(file_200)
-
-features_dam = pd.DataFrame(index_dam)
-index_dam = index_dam.rename(columns={'dome_spring': 'dom_spring'})
-all_variables = rf.predict(index_dam[features.columns])
-alpha = all_variables[0,0]
-beta = all_variables[0,1]
-mu = all_variables[0,2]
-
-a_low = all_variables[0,3]
-b_low = all_variables[0,4]
-mu_low = all_variables[0,5]
-curve_flood= create_sinusodial_curve(alpha, beta, mu,"flood")
-curve_conserve = create_sinusodial_curve(a_low, b_low, mu_low, "conserve")
-
-rmse_101498_high = np.sqrt(np.mean((curve_flood['flood']- turner_data['flood'])**2))
-rmse_101498_low = np.sqrt(np.mean((curve_conserve['conserve']- turner_data['conservation'])**2))
-print('RMSE flood is ' + str(rmse_101498_high) + ' and RMSE conservation is ' + str(rmse_101498_low))
-# plot against one another: Dam index 5
-plt.plot(turner_data['epiweek'], turner_data['flood'], color = 'navy', label = 'turner observed flood curve  ')
-plt.plot(curve_flood['epiweek'], curve_flood['flood'], color = 'lightblue', label = 'RF flood curve')
-plt.plot(curve_conserve['epiweek'], curve_conserve['conserve'], color = 'pink', label = 'RF conservation curve')
-plt.plot(turner_data['epiweek'], turner_data['conservation'], color ='red', label = 'turner observed conservation curve')
-plt.legend()
-plt.title("RF and Turner for Dam 15701")
-plt.show()
+# #### FLOOD CONTROL
+# # dam index 200
+# file_29 = raw_data_file + '113172.csv'
+# turner_data = pd.read_csv(file_29)
+# index_dam = input[input['hydrolakes'] == 113172]
 
 
-## DAM 539
 
-# dam index 200
-file_539 = raw_data_file + '9748.csv'
-turner_data = pd.read_csv(file_539)
+# index_dam = index_dam.rename(columns={'dome_spring': 'dom_spring'})
+# all_variables = rf.predict(index_dam[features.columns])
+# alpha = all_variables[0,0]
+# beta = all_variables[0,1]
+# mu = all_variables[0,2]
 
-# this doens't work
-index_dam = input[input['hydrolakes'] == 9748]
-index_dam = index_dam.rename(columns={'dome_spring': 'dom_spring'})
-all_variables = rf.predict(index_dam[features.columns])
-alpha = all_variables[0,0]
-beta = all_variables[0,1]
-mu = all_variables[0,2]
+# a_low = all_variables[0,3]
+# b_low = all_variables[0,4]
+# mu_low = all_variables[0,5]
 
-a_low = all_variables[0,3]
-b_low = all_variables[0,4]
-mu_low = all_variables[0,5]
-curve_flood= create_sinusodial_curve(alpha, beta, mu,"flood")
-curve_conserve = create_sinusodial_curve(a_low, b_low, mu_low, "conserve")
-rmse_101498_high = np.sqrt(np.mean((curve_flood['flood']- turner_data['flood'])**2))
-rmse_101498_low = np.sqrt(np.mean((curve_conserve['conserve']- turner_data['conservation'])**2))
-print('RMSE flood is ' + str(rmse_101498_high) + ' and RMSE conservation is ' + str(rmse_101498_low))
-# plot against one another: Dam index 5
-plt.plot(turner_data['epiweek'], turner_data['flood'], color = 'navy', label = 'turner observed flood curve  ')
-plt.plot(curve_flood['epiweek'], curve_flood['flood'], color = 'lightblue', label = 'RF flood curve')
-plt.plot(curve_conserve['epiweek'], curve_conserve['conserve'], color = 'pink', label = 'RF conservation curve')
-plt.plot(turner_data['epiweek'], turner_data['conservation'], color ='red', label = 'turner observed conservation curve')
-plt.legend()
-plt.title("RF and Turner for Dam 9748")
-plt.show()
+
+# curve_flood= create_sinusodial_curve(alpha, beta, mu,"flood")
+# curve_conserve = create_sinusodial_curve(a_low, b_low, mu_low, "conserve")
+# rmse_101498_high = np.sqrt(np.mean((curve_flood['flood']- turner_data['flood'])**2))
+# rmse_101498_low = np.sqrt(np.mean((curve_conserve['conserve']- turner_data['conservation'])**2))
+# print('RMSE flood is ' + str(rmse_101498_high) + ' and RMSE conservation is ' + str(rmse_101498_low))
+
+# # plot against one another: Dam index 5
+# plt.plot(turner_data['epiweek'], turner_data['flood'], color = 'navy', label = 'turner observed flood curve  ')
+# plt.plot(curve_flood['epiweek'], curve_flood['flood'], color = 'lightblue', label = 'RF flood curve')
+# plt.plot(curve_conserve['epiweek'], curve_conserve['conserve'], color = 'pink', label = 'RF conservation curve')
+# plt.plot(turner_data['epiweek'], turner_data['conservation'], color ='red', label = 'turner observed conservation curve')
+# plt.legend()
+# plt.title("RF and Turner for Dam 113172")
+# plt.show()
+
+# ## FC 
+# index_dam = input[input['hydrolakes'] == 111866.0]
+# turner_data = pd.read_csv(raw_data_file +'111866.csv')
+# index_dam = index_dam.rename(columns={'dome_spring': 'dom_spring'})
+# all_variables = rf.predict(index_dam[features.columns])
+# alpha = all_variables[0,0]
+# beta = all_variables[0,1]
+# mu = all_variables[0,2]
+
+# a_low = all_variables[0,3]
+# b_low = all_variables[0,4]
+# mu_low = all_variables[0,5]
+# curve_flood= create_sinusodial_curve(alpha, beta, mu,"flood")
+# curve_conserve = create_sinusodial_curve(a_low, b_low, mu_low, "conserve")
+
+# rmse_101498_high = np.sqrt(np.mean((curve_flood['flood']- turner_data['flood'])**2))
+# rmse_101498_low = np.sqrt(np.mean((curve_conserve['conserve']- turner_data['conservation'])**2))
+# print('RMSE flood is ' + str(rmse_101498_high) + ' and RMSE conservation is ' + str(rmse_101498_low))
+# # plot against one another: Dam index 5
+# plt.plot(turner_data['epiweek'], turner_data['flood'], color = 'navy', label = 'turner observed flood curve  ')
+# plt.plot(curve_flood['epiweek'], curve_flood['flood'], color = 'lightblue', label = 'RF flood curve')
+# plt.plot(curve_conserve['epiweek'], curve_conserve['conserve'], color = 'pink', label = 'RF conservation curve')
+# plt.plot(turner_data['epiweek'], turner_data['conservation'], color ='red', label = 'turner observed conservation curve')
+# plt.legend()
+# plt.title("RF and Turner for Dam 111866")
+# plt.show()
+
+# # dam index 200
+# file_200 = raw_data_file + '15701.csv'
+# index_dam = input[input['hydrolakes'] == 15701]
+
+# turner_data = pd.read_csv(file_200)
+
+# features_dam = pd.DataFrame(index_dam)
+# index_dam = index_dam.rename(columns={'dome_spring': 'dom_spring'})
+# all_variables = rf.predict(index_dam[features.columns])
+# alpha = all_variables[0,0]
+# beta = all_variables[0,1]
+# mu = all_variables[0,2]
+
+# a_low = all_variables[0,3]
+# b_low = all_variables[0,4]
+# mu_low = all_variables[0,5]
+# curve_flood= create_sinusodial_curve(alpha, beta, mu,"flood")
+# curve_conserve = create_sinusodial_curve(a_low, b_low, mu_low, "conserve")
+
+# rmse_101498_high = np.sqrt(np.mean((curve_flood['flood']- turner_data['flood'])**2))
+# rmse_101498_low = np.sqrt(np.mean((curve_conserve['conserve']- turner_data['conservation'])**2))
+# print('RMSE flood is ' + str(rmse_101498_high) + ' and RMSE conservation is ' + str(rmse_101498_low))
+# # plot against one another: Dam index 5
+# plt.plot(turner_data['epiweek'], turner_data['flood'], color = 'navy', label = 'turner observed flood curve  ')
+# plt.plot(curve_flood['epiweek'], curve_flood['flood'], color = 'lightblue', label = 'RF flood curve')
+# plt.plot(curve_conserve['epiweek'], curve_conserve['conserve'], color = 'pink', label = 'RF conservation curve')
+# plt.plot(turner_data['epiweek'], turner_data['conservation'], color ='red', label = 'turner observed conservation curve')
+# plt.legend()
+# plt.title("RF and Turner for Dam 15701")
+# plt.show()
+
+
+# ## DAM 539
+
+# # dam index 200
+# file_539 = raw_data_file + '9748.csv'
+# turner_data = pd.read_csv(file_539)
+
+# # this doens't work
+# index_dam = input[input['hydrolakes'] == 9748]
+# index_dam = index_dam.rename(columns={'dome_spring': 'dom_spring'})
+# all_variables = rf.predict(index_dam[features.columns])
+# alpha = all_variables[0,0]
+# beta = all_variables[0,1]
+# mu = all_variables[0,2]
+
+# a_low = all_variables[0,3]
+# b_low = all_variables[0,4]
+# mu_low = all_variables[0,5]
+# curve_flood= create_sinusodial_curve(alpha, beta, mu,"flood")
+# curve_conserve = create_sinusodial_curve(a_low, b_low, mu_low, "conserve")
+# rmse_101498_high = np.sqrt(np.mean((curve_flood['flood']- turner_data['flood'])**2))
+# rmse_101498_low = np.sqrt(np.mean((curve_conserve['conserve']- turner_data['conservation'])**2))
+# print('RMSE flood is ' + str(rmse_101498_high) + ' and RMSE conservation is ' + str(rmse_101498_low))
+# # plot against one another: Dam index 5
+# plt.plot(turner_data['epiweek'], turner_data['flood'], color = 'navy', label = 'turner observed flood curve  ')
+# plt.plot(curve_flood['epiweek'], curve_flood['flood'], color = 'lightblue', label = 'RF flood curve')
+# plt.plot(curve_conserve['epiweek'], curve_conserve['conserve'], color = 'pink', label = 'RF conservation curve')
+# plt.plot(turner_data['epiweek'], turner_data['conservation'], color ='red', label = 'turner observed conservation curve')
+# plt.legend()
+# plt.title("RF and Turner for Dam 9748")
+# plt.show()
 
 
 '''
