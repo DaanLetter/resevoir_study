@@ -216,5 +216,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+# Thesis data and generated validation artifacts
 Data/
-Data/
+POINTDATA/
+ResOpsUS/
+Context+readings/
+*.zip
+
+validation_outputs/
