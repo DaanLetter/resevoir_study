@@ -41,7 +41,7 @@ def TurnerOutflow(inflow_val, avg_inflow, env_flow, dem_val, previous_storage, w
     _rf_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Data', 'POINTDATA', '10_param_RF_bounds_final')
     variables = xr.open_dataset(os.path.join(_rf_dir, date_string + '.nc')).sel(latitude = latitude, longitude = longitude, method = 'nearest').to_dataframe().reset_index()
     flood = int(variables['flood'].iloc[0]/100*cap_215)
-    logger.debug("flood: %s", flood)
+    logger.info("flood: %s", flood)
     conservation = int(variables['conservation'].iloc[0]/100*cap_215)
     logger.debug("conservation: %s", conservation)
     
@@ -382,7 +382,6 @@ plt.plot(output['day'], output['flood']/cap_215, color = 'blue', linestyle = 'da
 plt.plot(output['day'], output['conservation']/cap_215, color = 'red', linestyle = 'dashed', label = 'conservation')
 plt.xticks(rotation = 90)
 plt.legend()
-plt.show()
 
 #
 
