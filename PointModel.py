@@ -13,6 +13,7 @@
 # TODO ADD IN LONGTERM AVERAGE INFLOW
 
 import logging
+import os
 
 import xarray as xr
 import numpy as np
@@ -37,11 +38,11 @@ def TurnerOutflow(inflow_val, avg_inflow, env_flow, dem_val, previous_storage, w
     
     logger.debug("week: %s", new_week_val)
     date_string = str('2000')+ "-" + str(month_val) +"-" + str(date_val)
-    #CHANGE PATH
-    variables = xr.open_dataset('/archive/depfg/steya001/POINTDATA/10_param_RF_bounds_final/'+ date_string+'.nc').sel(latitude = latitude, longitude = longitude, method = 'nearest').to_dataframe().reset_index()
-    flood = int(variables['flood']/100*cap_215)
+    _rf_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Data', 'POINTDATA', '10_param_RF_bounds_final')
+    variables = xr.open_dataset(os.path.join(_rf_dir, date_string + '.nc')).sel(latitude = latitude, longitude = longitude, method = 'nearest').to_dataframe().reset_index()
+    flood = int(variables['flood'].iloc[0]/100*cap_215)
     logger.debug("flood: %s", flood)
-    conservation = int(variables['conservation']/100*cap_215)
+    conservation = int(variables['conservation'].iloc[0]/100*cap_215)
     logger.debug("conservation: %s", conservation)
     
     # constants and calculated values
@@ -256,7 +257,7 @@ time_step = 84600
 conversion = 1e6
 glolakes = 112629
 # 1. Read in PCR GLOBWB Inflow and pull out the correct dam
-file_dir = '/archive/depfg/steya001/POINTDATA/'
+file_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Data', 'POINTDATA') + os.sep
 pcr.setclone(file_dir + "clone_M40.map")
 
 # These are monthly. We can re-run to get daily for a select region
@@ -301,12 +302,12 @@ output = pd.merge(output, env_flow_all, on = 'time')
 avg_inflow = inflow_dam['soswater_inflow'].mean()
 # output= output[output['time'] > '1999-12-31']
 # output = output[output['time']< '2001-01-01']
-output['modelled_storage'] = 0
-output['model_release'] =0
-output['flood'] =0
-output['conservation'] =0
-output['model_current_storage'] =0
-output['reduction_factor_model'] = 0
+output['modelled_storage'] = 0.0
+output['model_release'] = 0.0
+output['flood'] = 0.0
+output['conservation'] = 0.0
+output['model_current_storage'] = 0.0
+output['reduction_factor_model'] = 0.0
 
 
 #output['soswater_inflow'] = output['soswater_inflow'] +output['soswater_inflow'].mean()
@@ -381,6 +382,7 @@ plt.plot(output['day'], output['flood']/cap_215, color = 'blue', linestyle = 'da
 plt.plot(output['day'], output['conservation']/cap_215, color = 'red', linestyle = 'dashed', label = 'conservation')
 plt.xticks(rotation = 90)
 plt.legend()
+plt.show()
 
 #
 
