@@ -12,11 +12,16 @@
 # check with other points 
 # TODO ADD IN LONGTERM AVERAGE INFLOW
 
+import logging
+
 import xarray as xr
 import numpy as np
 import pcraster as pcr
 import matplotlib.pyplot as plt
 import pandas as pd
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+logger = logging.getLogger(__name__)
 
 
 # create 2x2 grid of all the variables in pcraster maps and then debug the pcraster :)
@@ -30,14 +35,14 @@ def TurnerOutflow(inflow_val, avg_inflow, env_flow, dem_val, previous_storage, w
     #print(week)
     new_week_val = week -1
     
-    print(new_week_val)
+    logger.debug("week: %s", new_week_val)
     date_string = str('2000')+ "-" + str(month_val) +"-" + str(date_val)
     #CHANGE PATH
     variables = xr.open_dataset('/archive/depfg/steya001/POINTDATA/10_param_RF_bounds_final/'+ date_string+'.nc').sel(latitude = latitude, longitude = longitude, method = 'nearest').to_dataframe().reset_index()
     flood = int(variables['flood']/100*cap_215)
-    print(flood)
+    logger.debug("flood: %s", flood)
     conservation = int(variables['conservation']/100*cap_215)
-    print(conservation)
+    logger.debug("conservation: %s", conservation)
     
     # constants and calculated values
     #env_flow = 0.01 * avg_inflow
@@ -60,13 +65,13 @@ def TurnerOutflow(inflow_val, avg_inflow, env_flow, dem_val, previous_storage, w
     if release < dem_val and hydropower ==0: # active storage
         #release = dem_val*reduction_factor/bankfull
         release = dem_val * demand_reduction_factor
-        print('non hydropower')
+        logger.debug("non hydropower active storage")
     ## ACTIVE STORAGE FOR HYDROPOWER
     if release < dem_val and hydropower ==1:
         release = dem_val * reduction_factor/bankfull
         if current_storage - release < conservation:
             release = current_storage - conservation # check to make sure it stays at conservation
-        print('hydropower')
+        logger.debug("hydropower active storage")
      #### NON NEGATIVE STORAGE CHECK
     test_storage_non_neg= current_storage - release
     if test_storage_non_neg <0:
@@ -82,7 +87,7 @@ def TurnerOutflow(inflow_val, avg_inflow, env_flow, dem_val, previous_storage, w
         release = 0  
     ## CHECK STORAGE 
     new_storage = current_storage - release
-    print(new_storage)
+    logger.debug("new_storage: %s", new_storage)
     return(release, flood, conservation, new_storage, reduction_factor)
 ## WILL HAVE TO CONVERT TO PCRRASTER MAPS.....
 
@@ -324,7 +329,7 @@ output['reduction_factor_model'] = 0
 output['day'] = range(0,len(output))
 cap_215 = 23.5*1e6
 for index in range(0,len(output)):
-    print(index)
+    logger.debug("processing timestep %s", index)
 
     if index ==1:
        previous_storage = output.iloc[index-1, 4]
@@ -342,7 +347,7 @@ for index in range(0,len(output)):
     usage_check['use_check'].mean()
     env_flow = output.iloc[index, 5]*86400
     outflow, flood_val, conservation_val, current_stor, current_rf = TurnerOutflow(inflow_val, avg_inflow,env_flow, dem_val, previous_storage, week, date_string, hydropower)
-    print(current_stor)
+    logger.debug("current_stor: %s", current_stor)
     if current_stor < 0:
         break
     output.iloc[index, 6] = previous_storage
@@ -354,7 +359,7 @@ for index in range(0,len(output)):
     water_balance = inflow_val - outflow + previous_storage
     stor_diff = current_stor - previous_storage
     if round(water_balance) != round(current_stor): #or round(stor_diff) != round(inflow_val):
-        print("something is wrong")
+        logger.error("water balance check failed at timestep %s: balance=%.2f, storage=%.2f", index, water_balance, current_stor)
         break
 
 

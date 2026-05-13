@@ -3,7 +3,10 @@
 # JCS
 # Sep 25, 2023
 
+import logging
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+logger = logging.getLogger(__name__)
 
 
 # sci py with multivariate linear regression
@@ -146,8 +149,9 @@ importances = list(rf.feature_importances_)
 feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(features, importances)]
 # Sort the feature importances by most important first
 feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
-# Print out the feature and importances 
-[print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances];
+# Print out the feature and importances
+for pair in feature_importances:
+    logger.info('Variable: %-20s Importance: %s', *pair)
 
 ## Repeat for low curves
 # Calculate mean absolute percentage error (MAPE)
@@ -159,6 +163,7 @@ rmse3 = np.sqrt(np.mean((predictions[:,2]-test_labels[:,2])**2))
 nrmse_all = np.sqrt(rmse1/np.mean(test_labels[:,0])**2 + rmse2/np.mean(test_labels[:,1])**2 + rmse3/np.mean(test_labels[:,2])**2)
 
 stdev = np.std(predictions)
+logger.info("RMSE (all): %.4f, NRMSE: %.4f, StdDev: %.4f", rmse_all, nrmse_all, stdev)
 
 
 # square plot

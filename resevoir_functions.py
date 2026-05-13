@@ -1,8 +1,11 @@
+import logging
+
 import numpy as np
 import matplotlib.pyplot as plt
-import warnings
 
 #based on Steyaert2025: Data derived reservoir operations simulated in a global hydrologic model
+
+logger = logging.getLogger(__name__)
 
 BANKFULL_NUMBER = 2.3 #ratio of bankfull discharge to the average discharge
 
@@ -27,7 +30,7 @@ def initial_discharge(current_storage, max_storage, min_storage, avg_outflow, av
     RF = reduction_factor(current_storage, min_storage, max_storage)
     Ri = avg_outflow*RF
     if Ri > BANKFULL_NUMBER:
-        warnings.warn(f"Ri ({Ri:.2f}) exceeds bankfull discharge threshold of {BANKFULL_NUMBER*avg_discharge}") #Do we compare to discharge or number? We would then have to define average discharge as well. 
+        logger.warning("Ri (%.2f) exceeds bankfull discharge threshold of %s", Ri, BANKFULL_NUMBER * avg_discharge)
     return Ri
 
 def new_storage(current_storage, max_storage, min_storage, avg_outflow, inflow=0, precipitation=0, evaporation=0,):
