@@ -173,7 +173,7 @@ def getReservoirOutflow_Turner(self, avgChannelDischarge, length_of_time_step, d
 
 
 def estimate_discharge_for_environmental_flow(self, channelStorage):
-    # z-score for 90th percentile; sets the environmental flow threshold
+    # z-score for 90th percentile; sets the environmental flow threshold+
     z_score = 1.2816
 
     # Long-term variance of discharge using an online Welford algorithm
@@ -268,9 +268,10 @@ for index in range(0, len(output)):
 plt.plot(output['day'], output['sos_storage_check'] / cap_215, label='current storage pcr function')
 plt.axhline(y=cap_215 / cap_215, color='black', linestyle='-')
 plt.plot(output['day'], output['model_current_storage'] / cap_215, color='purple', label='modelled storage 1D')
-plt.plot(output['day'], output['model_release'] / cap_215, color='green', label='modelled release')
-plt.plot(output['day'], output['soswater_inflow'] / cap_215, color='grey', linestyle='dashed', label='modelled inflow')
-plt.plot(output['day'], output['flood'] / cap_215, color='blue', linestyle='dashed', label='flood')
-plt.plot(output['day'], output['conservation'] / cap_215, color='red', linestyle='dashed', label='conservation')
+# plt.plot(output['day'], output['model_release'] / cap_215, color='green', label='modelled release')
+# plt.plot(output['day'], output['soswater_inflow'] / cap_215, color='grey', linestyle='dashed', label='modelled inflow')
+# plt.plot(output['day'], output['flood'] / cap_215, color='blue', linestyle='dashed', label='flood')
+# plt.plot(output['day'], output['conservation'] / cap_215, color='red', linestyle='dashed', label='conservation')
 plt.xticks(rotation=90)
 plt.legend()
+plt.show()
