@@ -226,6 +226,8 @@ output['reduction_factor_model'] = 0.0
 
 output['day'] = range(0, len(output))
 cap_215 = 23.5 * 1e6
+logger.info('length dataframe', len(output))
+logger.debug(output.head())
 
 # ── Main simulation loop ──────────────────────────────────────────────────────
 for index in range(0, len(output)):

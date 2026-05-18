@@ -33,13 +33,11 @@ def initial_discharge(current_storage, max_storage, min_storage, avg_outflow, av
         logger.warning("Ri (%.2f) exceeds bankfull discharge threshold of %s", Ri, BANKFULL_NUMBER * avg_discharge)
     return Ri
 
-def new_storage(current_storage, max_storage, min_storage, avg_outflow, inflow=0, precipitation=0, evaporation=0,):
+def new_storage(release, current_storage, max_storage, min_storage, avg_outflow, inflow=0, precipitation=0, evaporation=0,):
 
     #equation 2, I am not sure yet what needs to be done with Inflow, Precipitation and evaporation
     #This updated storage is used to define the reduction factor. I am still thinking of a way how to implement the timesteps 
     #I might need to change initial discharge to a release function based on the timestep. 
-
-    release = initial_discharge(current_storage, max_storage, min_storage, avg_outflow) #The release should be calculated and not just be the initial release. Some Logic is still required for this.
     Sn = current_storage + inflow + precipitation - evaporation - release
 
     return Sn
@@ -69,26 +67,26 @@ def generic_release(current_storage, avg_discharge, storage_capacity, bankfull_d
     return release
 
 
-def starfit_release(current_storage, storage_capacity, current_release, max_storage, min_storage, avg_outflow, env_flow, demand, use='irrigation'):
+def starfit_release(current_storage, storage_capacity, max_storage, min_storage, avg_outflow, env_flow, demand, current_release=0, use='hydropower'):
    
     #equation 6. I am not sure how to model the current_release and if under the flood conditions the Ri means initial release or irrigation release
     # The environmental flow requirement is defined in PCR-GLOBWB 2
 
     release = 0
 
-    ID = initial_discharge(current_storage, max_storage, min_storage, avg_outflow)
+    ID = initial_discharge(current_storage, max_storage, min_storage, avg_outflow, avg_discharge=0)
     Ri = irrigation_release(min_storage, max_storage, current_storage, current_release, demand, storage_capacity)
     Rh = hydropower_release(current_storage, min_storage, max_storage, current_release, demand)
     Rf = flood_release(current_storage, current_release, max_storage)
 
     if current_storage - current_release >= storage_capacity:
         release = ID  + Rf
-    elif min_storage < current_storage < max_storage and use == 'irrigation':
+    elif min_storage < current_storage < max_storage and use != 'hydropower':
         release = Ri
-    elif min_storage < current_storage < max_storage and use != 'irrigation':
+    elif min_storage < current_storage < max_storage and use == 'hydropower':
         release = Rh
     elif current_storage < min_storage:
-        active_release = Ri if use == 'irrigation' else Rh
+        active_release = Ri if use != 'hydropower' else Rh
         if active_release < env_flow and current_storage - env_flow > 0:
             release = env_flow
     return release
