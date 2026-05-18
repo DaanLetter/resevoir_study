@@ -33,7 +33,7 @@ def initial_discharge(current_storage, max_storage, min_storage, avg_outflow, av
         logger.warning("Ri (%.2f) exceeds bankfull discharge threshold of %s", Ri, BANKFULL_NUMBER * avg_discharge)
     return Ri
 
-def new_storage(release, current_storage, max_storage, min_storage, avg_outflow, inflow=0, precipitation=0, evaporation=0,):
+def new_storage(release, current_storage, inflow=0, precipitation=0, evaporation=0,):
 
     #equation 2, I am not sure yet what needs to be done with Inflow, Precipitation and evaporation
     #This updated storage is used to define the reduction factor. I am still thinking of a way how to implement the timesteps 
