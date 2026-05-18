@@ -9,6 +9,7 @@ import xarray as xr
 import numpy as np
 import pcraster as pcr
 import matplotlib.pyplot as plt
+import seaborn as sns
 import pandas as pd
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
@@ -267,13 +268,26 @@ for index in range(0, len(output)):
 
 
 # ── Plotting ──────────────────────────────────────────────────────────────────
-plt.plot(output['day'], output['sos_storage_check'] / cap_215, label='current storage pcr function')
-plt.axhline(y=cap_215 / cap_215, color='black', linestyle='-')
-plt.plot(output['day'], output['model_current_storage'] / cap_215, color='purple', label='modelled storage 1D')
-# plt.plot(output['day'], output['model_release'] / cap_215, color='green', label='modelled release')
-# plt.plot(output['day'], output['soswater_inflow'] / cap_215, color='grey', linestyle='dashed', label='modelled inflow')
-# plt.plot(output['day'], output['flood'] / cap_215, color='blue', linestyle='dashed', label='flood')
-# plt.plot(output['day'], output['conservation'] / cap_215, color='red', linestyle='dashed', label='conservation')
-plt.xticks(rotation=90)
-plt.legend()
+plot_df = output[['time', 'sos_storage_check', 'model_current_storage', 'model_release', 'soswater_inflow', 'flood', 'conservation']].copy()
+plot_df['PCR storage']      = plot_df['sos_storage_check']       / cap_215
+plot_df['modelled storage'] = plot_df['model_current_storage']   / cap_215
+plot_df['modelled release'] = plot_df['model_release']           / cap_215
+plot_df['inflow']           = plot_df['soswater_inflow']         / cap_215
+plot_df['flood']            = plot_df['flood']                   / cap_215
+plot_df['conservation']     = plot_df['conservation']            / cap_215
+
+plot_long = plot_df.melt(
+    id_vars='time',
+    value_vars=['PCR storage', 'modelled storage', 'modelled release', 'inflow', 'flood', 'conservation'],
+    var_name='series',
+    value_name='fraction of capacity'
+)
+
+fig, ax = plt.subplots(figsize=(14, 5))
+sns.lineplot(data=plot_long, x='time', y='fraction of capacity', hue='series', ax=ax)
+ax.axhline(y=1.0, color='black', linestyle='-', linewidth=0.8, label='full capacity')
+ax.set_title('Reservoir storage — PCR-GLOBWB vs modelled (PointModel)')
+ax.set_xlabel('Time')
+plt.xticks(rotation=45, ha='right')
+plt.tight_layout()
 plt.show()
