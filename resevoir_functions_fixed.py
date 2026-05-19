@@ -29,8 +29,6 @@ def initial_discharge(current_storage, max_storage, min_storage, avg_outflow, av
 
     RF = reduction_factor(current_storage, min_storage, max_storage)
     Ri = avg_outflow*RF
-    if Ri > BANKFULL_NUMBER:
-        logger.warning("Ri (%.2f) exceeds bankfull discharge threshold of %s", Ri, BANKFULL_NUMBER * avg_discharge)
     return Ri
 
 def new_storage(release, current_storage, inflow=0, precipitation=0, evaporation=0, storage_capacity=None):
@@ -69,7 +67,7 @@ def generic_release(current_storage, avg_discharge, storage_capacity, bankfull_d
     return release
 
 
-def starfit_release(current_storage, storage_capacity, max_storage, min_storage, avg_outflow, env_flow, demand, avg_discharge, current_release=0, use='hydropower'):
+def starfit_release(current_storage, storage_capacity, max_storage, min_storage, avg_outflow, env_flow, demand, current_release=0, use='hydropower'):
 
     #equation 6.
     # FIX: added surplus-zone branch for max_storage <= S < storage_capacity.
@@ -78,7 +76,7 @@ def starfit_release(current_storage, storage_capacity, max_storage, min_storage,
 
     release = 0
 
-    ID = initial_discharge(current_storage, max_storage, min_storage, avg_outflow, avg_discharge)
+    ID = initial_discharge(current_storage, max_storage, min_storage, avg_outflow)
     Ri = irrigation_release(min_storage, max_storage, current_storage, current_release, demand, storage_capacity)
     Rh = hydropower_release(current_storage, min_storage, max_storage, current_release, demand)
     Rf = flood_release(current_storage, current_release, max_storage)
