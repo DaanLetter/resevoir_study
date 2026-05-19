@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash('C:\\\\Users\\\\dlp96\\\\miniconda3\\\\envs\\\\geospatial2\\\\python.exe' -c ' *)",
+      "Bash(\"C:\\\\Users\\\\dlp96\\\\miniconda3\\\\envs\\\\geospatial2\\\\python.exe\" -)"
+    ]
+  }
+}
